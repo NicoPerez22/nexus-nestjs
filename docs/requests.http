@@ -1,0 +1,42 @@
+@base = http://localhost:3000/api
+@token = PEGAR_ACCESS_TOKEN
+
+### Login: usar SEED_ADMIN_PASSWORD
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"admin@nexus.gg","password":"ChangeThisBeforeUse2026!"}
+
+### Resumen
+GET {{base}}/dashboard
+Authorization: Bearer {{token}}
+
+### Equipos
+GET {{base}}/teams
+Authorization: Bearer {{token}}
+
+### Organización
+GET {{base}}/organization
+Authorization: Bearer {{token}}
+
+### Crear evento
+POST {{base}}/calendar/events
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Scrim de prueba","team":"Valorant","date":"2026-10-10","time":"18:00","type":"Entrenamiento"}
+
+### Tareas pendientes
+GET {{base}}/tasks?status=pending
+Authorization: Bearer {{token}}
+
+### Crear tarea
+POST {{base}}/tasks
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Preparar VOD","team":"Valorant","who":"Nico","due":"2026-10-10","priority":true,"done":false}
+
+### Cerrar sesión
+POST {{base}}/auth/logout
+Authorization: Bearer {{token}}
