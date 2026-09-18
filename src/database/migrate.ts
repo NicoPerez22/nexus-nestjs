@@ -1,6 +1,6 @@
-import { AppDataSource } from "./data-source";
+import { AppDataSource, requireMysqlEnv } from "./data-source";
 async function run() {
-  if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
+  requireMysqlEnv();
   await AppDataSource.initialize();
   try {
     await AppDataSource.runMigrations({ transaction: "all" });

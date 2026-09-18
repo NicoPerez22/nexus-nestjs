@@ -1,16 +1,18 @@
 services:
   db:
-    image: postgres:17-alpine
+    image: mysql:8.4
     environment:
-      POSTGRES_USER: nexus
-      POSTGRES_PASSWORD: nexus_local_password
-      POSTGRES_DB: nexus_hq
+      MYSQL_USER: nexus
+      MYSQL_PASSWORD: nexus_local_password
+      MYSQL_DATABASE: nexus_hq
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:3306:3306"
     volumes:
-      - nexus_data:/var/lib/postgresql/data
+      - nexus_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus_hq"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u nexus -pnexus_local_password"]
       interval: 5s
       timeout: 5s
       retries: 10

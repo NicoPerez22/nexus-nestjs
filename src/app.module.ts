@@ -9,29 +9,13 @@ import { CalendarModule } from "./feature/calendar/calendar.module";
 import { TasksModule } from "./feature/tasks/tasks.module";
 import { DashboardModule } from "./feature/dashboard/dashboard.module";
 import { OrganizationModule } from "./feature/organization/organization.module";
+import { FinanceModule } from "./feature/finance/finance.module";
+import { ScoutingModule } from "./feature/scouting/scouting.module";
+import { databaseOptions } from "./database/data-source";
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(
-      {
-      type: 'mysql',
-      host: process.env.MYSQLHOST,
-      port: Number(process.env.MYSQLPORT || 3306),
-      username: process.env.MYSQLUSER,
-      password: process.env.MYSQLPASSWORD,
-      database: process.env.MYSQLDATABASE,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
-      autoLoadEntities: true,
-      extra: {
-        connectionLimit: 10, // máximo 10 conexiones vivas
-        waitForConnections: true, // no lanzar error, poner en cola
-        queueLimit: 0, // sin límite de cola
-        connectTimeout: 10000, // 10 segundos
-        acquireTimeout: 10000, // timeout para adquirir conexión
-      },
-    }
-    ),
+    TypeOrmModule.forRoot(databaseOptions),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
     OrganizationModule,
     AuthModule,
@@ -39,6 +23,8 @@ import { OrganizationModule } from "./feature/organization/organization.module";
     CalendarModule,
     TasksModule,
     DashboardModule,
+    FinanceModule,
+    ScoutingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

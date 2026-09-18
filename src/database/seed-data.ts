@@ -1,6 +1,7 @@
 import { DataSource } from "typeorm";
 import { randomUUID } from "node:crypto";
 import {
+  Role,
   User,
   Team,
   Player,
@@ -8,9 +9,19 @@ import {
   TeamEvent,
   Task,
   Organization,
+  FinanceCategory,
+  FinanceMovement,
+  ScoutPlayer,
+  ScoutTrait,
+  ScoutObservation,
 } from "./entities";
 import { createSeed } from "./demo-data";
 import { hashPassword } from "../common/password";
+const defaultRoles = [
+  { id: 1, name: "admin" },
+  { id: 2, name: "manager" },
+  { id: 3, name: "viewer" },
+];
 export async function seedData(
   ds: DataSource,
   email: string,
@@ -21,6 +32,9 @@ export async function seedData(
   const hash = await hashPassword(password);
   const demo = createSeed();
   await ds.transaction(async (m) => {
+    for (const role of defaultRoles)
+      if (!(await m.findOneBy(Role, { name: role.name })))
+        await m.save(Role, role);
     if (!(await m.findOneBy(Organization, { id: 1 })))
       await m.save(Organization, {
         id: 1,
@@ -30,12 +44,16 @@ export async function seedData(
         tagline: "Todo empieza en equipo.",
         footer: "El talento gana partidas. El equipo construye el resto.",
       });
-    if (!(await m.findOneBy(User, { email: email.toLowerCase() })))
+    const adminRole = await m.findOneBy(Role, { name: "admin" });
+    if (
+      adminRole &&
+      !(await m.findOneBy(User, { email: email.toLowerCase() }))
+    )
       await m.save(User, {
         id: randomUUID(),
         email: email.toLowerCase(),
         name: "Admin",
-        role: "manager",
+        roleId: adminRole.id,
         passwordHash: hash,
       });
     for (const t of demo.teams) {
@@ -87,6 +105,80 @@ export async function seedData(
           priority: t.priority,
           done: t.done,
         });
+    }
+    const categories = [
+      { id: "00000000-0000-4000-a000-000000000001", name: "Sponsors", kind: "ingreso" },
+      { id: "00000000-0000-4000-a000-000000000002", name: "Premios", kind: "ingreso" },
+      { id: "00000000-0000-4000-a000-000000000003", name: "Merchandising", kind: "ambos" },
+      { id: "00000000-0000-4000-a000-000000000004", name: "Viajes", kind: "egreso" },
+      { id: "00000000-0000-4000-a000-000000000005", name: "Equipamiento", kind: "egreso" },
+      { id: "00000000-0000-4000-a000-000000000006", name: "Sueldos", kind: "egreso" },
+    ];
+    for (const category of categories)
+      if (!(await m.findOneBy(FinanceCategory, { id: category.id })))
+        await m.save(FinanceCategory, category);
+    const travel = categories[3].id;
+    const today = demo.events[0].date;
+    const movements = [
+      {
+        id: "00000000-0000-4000-c000-000000000001",
+        kind: "ingreso",
+        categoryId: categories[0].id,
+        amount: "250000.00",
+        date: today,
+        concept: "Sponsor principal",
+        detail: "Cuota mensual del sponsor de camiseta",
+      },
+      {
+        id: "00000000-0000-4000-c000-000000000002",
+        kind: "egreso",
+        categoryId: travel,
+        amount: "85000.00",
+        date: today,
+        concept: "Viaje a LAN",
+        detail: "Pasajes y hotel del roster Valorant",
+      },
+    ];
+    for (const movement of movements)
+      if (!(await m.findOneBy(FinanceMovement, { id: movement.id })))
+        await m.save(FinanceMovement, movement);
+    const scoutId = "00000000-0000-4000-b000-000000000001";
+    if (!(await m.findOneBy(ScoutPlayer, { id: scoutId }))) {
+      await m.save(ScoutPlayer, {
+        id: scoutId,
+        name: "Martín Pérez",
+        nickname: "volt",
+        game: "Valorant",
+        role: "Duelista",
+        age: 19,
+        country: "Argentina",
+        status: "Seguimiento",
+        contact: "volt#LAN",
+      });
+      await m.save(ScoutTrait, [
+        {
+          id: "00000000-0000-4000-b100-000000000001",
+          playerId: scoutId,
+          name: "Aim",
+          rating: 8,
+          note: "Consistente en ranked",
+        },
+        {
+          id: "00000000-0000-4000-b100-000000000002",
+          playerId: scoutId,
+          name: "Comunicación",
+          rating: 6,
+          note: null,
+        },
+      ]);
+      await m.save(ScoutObservation, {
+        id: "00000000-0000-4000-b200-000000000001",
+        playerId: scoutId,
+        date: today,
+        author: "Coach",
+        title: "Primer VOD",
+        content: "Buen entry, le cuesta el post-plant. Seguir de cerca.",
+      });
     }
   });
 }

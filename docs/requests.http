@@ -7,12 +7,41 @@ Content-Type: application/json
 
 {"email":"admin@nexus.gg","password":"ChangeThisBeforeUse2026!"}
 
+### Crear usuario (manager)
+POST {{base}}/auth/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"email":"coach@nexus.gg","name":"Coach","password":"MinimoDoce1!","role":"viewer"}
+
+### Roles
+GET {{base}}/auth/roles
+Authorization: Bearer {{token}}
+
 ### Resumen
 GET {{base}}/dashboard
 Authorization: Bearer {{token}}
 
 ### Equipos
 GET {{base}}/teams
+Authorization: Bearer {{token}}
+
+### Crear equipo
+POST {{base}}/teams
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Rocket League","short":"RL","sub":"Roster principal","win":50}
+
+### Editar equipo
+PUT {{base}}/teams/rocket-league
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Rocket League","short":"RL","sub":"Roster academia","win":62}
+
+### Eliminar equipo
+DELETE {{base}}/teams/rocket-league
 Authorization: Bearer {{token}}
 
 ### Organización
@@ -36,6 +65,56 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"name":"Preparar VOD","team":"Valorant","who":"Nico","due":"2026-10-10","priority":true,"done":false}
+
+### Finanzas: categorías
+GET {{base}}/finance/categories
+Authorization: Bearer {{token}}
+
+### Finanzas: resumen y gráficos
+GET {{base}}/finance/summary
+Authorization: Bearer {{token}}
+
+GET {{base}}/finance/charts/monthly?year=2026
+Authorization: Bearer {{token}}
+
+GET {{base}}/finance/charts/categories?kind=egreso
+Authorization: Bearer {{token}}
+
+### Finanzas: crear egreso
+POST {{base}}/finance/movements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"kind":"egreso","categoryId":"PEGAR_CATEGORY_ID","amount":85000,"date":"2026-10-10","concept":"Viaje a LAN","detail":"Pasajes y hotel del roster Valorant"}
+
+### Scouting: listado
+GET {{base}}/scouting/players
+Authorization: Bearer {{token}}
+
+### Scouting: detalle
+GET {{base}}/scouting/players/00000000-0000-4000-b000-000000000001
+Authorization: Bearer {{token}}
+
+### Scouting: crear prospecto
+POST {{base}}/scouting/players
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"name":"Martín Pérez","nickname":"volt","game":"Valorant","role":"Duelista","age":19,"country":"Argentina","status":"Seguimiento","contact":"volt#LAN"}
+
+### Scouting: características
+PUT {{base}}/scouting/players/00000000-0000-4000-b000-000000000001/traits
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"traits":[{"name":"Aim","rating":8,"note":"Consistente"},{"name":"Comunicación","rating":6}]}
+
+### Scouting: observación
+POST {{base}}/scouting/players/00000000-0000-4000-b000-000000000001/observations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"date":"2026-10-10","author":"Coach","title":"Primer VOD","content":"Buen entry, le cuesta el post-plant."}
 
 ### Cerrar sesión
 POST {{base}}/auth/logout

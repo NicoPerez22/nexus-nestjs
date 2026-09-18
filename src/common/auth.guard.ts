@@ -10,6 +10,7 @@ import { Reflector } from "@nestjs/core";
 import { DataSource, MoreThan } from "typeorm";
 import { Session, User } from "../database/entities";
 import { tokenHash } from "./password";
+import { canMutate, publicUser } from "./user";
 export const Public = () => SetMetadata("public", true);
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -38,21 +39,19 @@ export class AuthGuard implements CanActivate {
     if (!session) throw new UnauthorizedException("Sesión inválida o vencida");
     const user = await this.ds
       .getRepository(User)
-      .findOneBy({ id: session.userId });
+      .findOne({
+        where: { id: session.userId },
+        relations: { role: true },
+      });
     if (!user) throw new UnauthorizedException();
-    req.user = {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    };
+    req.user = publicUser(user);
     req.sessionId = session.id;
     if (
       !["GET", "HEAD", "OPTIONS"].includes(req.method) &&
-      user.role !== "manager" &&
+      !canMutate(user.role?.name) &&
       req.path !== "/api/auth/logout"
     )
-      throw new ForbiddenException("Se requiere rol manager");
+      throw new ForbiddenException("Se requiere rol admin o manager");
     return true;
   }
 }

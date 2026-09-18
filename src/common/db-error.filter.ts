@@ -4,15 +4,25 @@ import { QueryFailedError } from "typeorm";
 export class DbErrorFilter implements ExceptionFilter {
   catch(error: QueryFailedError, host: ArgumentsHost) {
     const code = (error.driverError as { code?: string }).code;
-    const status =
-      code === "23505"
-        ? 409
-        : code === "23503" ||
-            code === "23514" ||
-            code === "22007" ||
-            code === "22008"
-          ? 400
-          : 500;
+    const conflict = ["23505", "ER_DUP_ENTRY"];
+    const badRequest = [
+      "23503",
+      "23514",
+      "22007",
+      "22008",
+      "ER_NO_REFERENCED_ROW",
+      "ER_NO_REFERENCED_ROW_2",
+      "ER_ROW_IS_REFERENCED",
+      "ER_ROW_IS_REFERENCED_2",
+      "ER_CHECK_CONSTRAINT_VIOLATED",
+      "ER_BAD_NULL_ERROR",
+      "ER_DATA_TOO_LONG",
+      "ER_TRUNCATED_WRONG_VALUE",
+      "WARN_DATA_TRUNCATED",
+    ];
+    let status = 500;
+    if (conflict.includes(code ?? "")) status = 409;
+    else if (badRequest.includes(code ?? "")) status = 400;
     host
       .switchToHttp()
       .getResponse()
